@@ -3,7 +3,7 @@
 ## install
 
 ```bash
-uv pip install git+https://github.com/grahlnn/longvu.git
+uv pip install git+https://github.com/GrahLnn/LongVU.git
 ```
 
 ## useage
