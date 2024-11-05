@@ -1,10 +1,8 @@
 import base64
 import dataclasses
-from enum import auto, Enum
+from enum import Enum, auto
 from io import BytesIO
-from typing import Any, Dict, List, Tuple, Union
-
-from longvu.file_io import PathManager
+from typing import Any, List, Union
 
 from PIL import Image
 from transformers import AutoTokenizer
@@ -127,12 +125,10 @@ class Conversation:
                 else:
                     ret += ""
             ret = ret.lstrip(self.sep)
-        elif self.sep_style == SeparatorStyle.LLAMA_3:
+        elif self.sep_style == SeparatorStyle.LLAMA_3_2:
             if self.tokenizer is None:
                 self.tokenizer = AutoTokenizer.from_pretrained(
-                    PathManager.get_local_path(
-                        "manifold://xr_core_ai_asl_llm/tree/users/shenx/models/Cambrian-Llama3_1-8b-t576/"
-                    )
+                    "Vision-CAIR/LongVU_Llama3_2_3B"
                 )
             chat_template_messages = [{"role": "system", "content": self.system}]
             for role, message in messages:
@@ -146,61 +142,6 @@ class Conversation:
             return self.tokenizer.apply_chat_template(
                 chat_template_messages, tokenize=False, add_generation_prompt=True
             )
-        elif self.sep_style == SeparatorStyle.LLAMA_3_1:
-            if self.tokenizer is None:
-                self.tokenizer = AutoTokenizer.from_pretrained(
-                    PathManager.get_local_path(
-                        "manifold://xr_core_ai_asl_llm/tree/users/shenx/models/Cambrian-Llama3_1-8b-t576/"
-                    )
-                )
-            chat_template_messages = [{"role": "system", "content": self.system}]
-            for role, message in messages:
-                if message:
-                    if type(message) is tuple:
-                        message, images = message
-                        message = "<image>" * len(images) + message
-                    chat_template_messages.append({"role": role, "content": message})
-
-            return self.tokenizer.apply_chat_template(
-                chat_template_messages, tokenize=False, add_generation_prompt=False
-            )
-        elif (
-            # self.sep_style == SeparatorStyle.LLAMA_3 or
-            self.sep_style
-            == SeparatorStyle.LLAMA_3_2
-        ):
-            wrap_sys = lambda msg: (
-                f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>{msg}<|eot_id|>"
-                if len(msg) > 0
-                else msg
-            )
-            wrap_inst_user = (
-                lambda msg: f"<|start_header_id|>user<|end_header_id|>{msg}<|eot_id|>"
-            )
-            wrap_inst_assistant = (
-                lambda msg: f"<|start_header_id|>assistant<|end_header_id|>{msg}<|eot_id|>"
-            )
-            ret = ""
-
-            for i, (role, message) in enumerate(messages):
-                if i == 0:
-                    assert message, "first message should not be none"
-                    assert role == self.roles[0], "first message should come from user"
-                if message:
-                    if type(message) is tuple:
-                        message, _, _ = message
-                    if i == 0:
-                        ret += wrap_sys(self.system)
-
-                    if i % 2 == 0:
-                        message = wrap_inst_user(message)
-                        ret += message
-                    else:
-                        message = wrap_inst_assistant(message)
-                        ret += message
-                else:
-                    ret += ""
-            ret += "<|start_header_id|>assistant<|end_header_id|>"
         elif self.sep_style == SeparatorStyle.PLAIN:
             seps = [self.sep, self.sep2]
             ret = self.system
@@ -522,11 +463,7 @@ Answer the questions.""",
     sep="<|im_end|>",
 )
 
-# llama3_tokenizer = AutoTokenizer.from_pretrained(
-#     PathManager.get_local_path(
-#         "./checkpoint/"
-#     )
-# )
+llama3_tokenizer = AutoTokenizer.from_pretrained("Vision-CAIR/LongVU_Llama3_2_3B")
 
 conv_llama3 = Conversation(
     system="""You are a helpful assistant.""",
@@ -537,7 +474,7 @@ conv_llama3 = Conversation(
     messages=(),
     offset=0,
     sep_style=SeparatorStyle.LLAMA_3,
-    # tokenizer=llama3_tokenizer,
+    tokenizer=llama3_tokenizer,
     sep="<|eot_id|>",
 )
 

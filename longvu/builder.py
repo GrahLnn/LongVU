@@ -16,18 +16,17 @@
 
 
 import os
-import shutil
 import warnings
 
 import torch
-from longvu.constants import (
+from .constants import (
     DEFAULT_IM_END_TOKEN,
     DEFAULT_IM_START_TOKEN,
     DEFAULT_IMAGE_PATCH_TOKEN,
 )
 
-from longvu.language_model.cambrian_llama import CambrianLlamaForCausalLM
-from longvu.language_model.cambrian_qwen import CambrianQwenForCausalLM
+from .language_model.cambrian_llama import CambrianLlamaForCausalLM
+from .language_model.cambrian_qwen import CambrianQwenForCausalLM
 
 from transformers import (
     AutoConfig,

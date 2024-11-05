@@ -15,7 +15,7 @@ import transformers
 
 from longvu import conversation as conversation_lib
 
-from longvu.constants import (
+from .constants import (
     DEFAULT_IM_END_TOKEN,
     DEFAULT_IM_START_TOKEN,
     DEFAULT_IMAGE_TOKEN,

@@ -1,5 +1,4 @@
 huggingface_hub==0.25.1
-torch==2.1.2
 numpy==1.26.4
 torchvision
 transformers==4.42.4

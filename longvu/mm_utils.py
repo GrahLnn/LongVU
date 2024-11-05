@@ -4,7 +4,7 @@ import math
 from io import BytesIO
 
 import torch
-from longvu.constants import IMAGE_TOKEN_INDEX
+from .constants import IMAGE_TOKEN_INDEX
 from PIL import Image
 
 from transformers import StoppingCriteria

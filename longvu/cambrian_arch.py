@@ -14,14 +14,13 @@
 
 
 import math
-import random
 from abc import ABC, abstractmethod
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from longvu.constants import (
+from .constants import (
     DEFAULT_IM_END_TOKEN,
     DEFAULT_IM_START_TOKEN,
     DEFAULT_IMAGE_PATCH_TOKEN,
@@ -37,15 +36,12 @@ IS_XLA_AVAILABLE = False
 
 
 class CambrianMetaModel:
-
     def __init__(self, config):
         super(CambrianMetaModel, self).__init__(config)
 
         if hasattr(config, "mm_vision_tower_aux_list"):
-
             projector_type = getattr(config, "mm_projector_type", "linear")
             if projector_type == "sva":
-
                 vision_hidden_size = config.vision_hidden_size
                 num_query_group = config.num_query_group
                 query_num_list = config.query_num_list
@@ -234,7 +230,6 @@ class CambrianMetaModel:
         self.config.mm_vision_select_feature = mm_vision_select_feature
 
         if getattr(self, "mm_projector", None) is None:
-
             if self.config.mm_projector_type == "sva":
                 self.mm_projector = nn.Sequential(
                     nn.Linear(
@@ -444,7 +439,6 @@ def unpad_image(tensor, original_size):
 
 
 class CambrianMetaForCausalLM(ABC):
-
     @abstractmethod
     def get_model(self):
         pass
@@ -1462,12 +1456,6 @@ class CambrianMetaForCausalLM(ABC):
                     frame_split_sizes[cur_image_idx],
                     -1,
                     image_features[cur_image_idx].shape[-1],
-                )
-
-                sim = F.cosine_similarity(
-                    visual_emb_frame[:-1],
-                    visual_emb_frame[1:],
-                    dim=-1,
                 )
 
                 new_visual_emb_frames = []
