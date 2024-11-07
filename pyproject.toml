@@ -14,15 +14,6 @@ decord = "^0.6.0"
 iopath = "^0.1.10"
 accelerate = "^1.0.1"
 filetype = "^1.2.0"
-torch = { version = "^2.4.0", source="torch"}
-torchaudio = { version = "^2.4.0", source="torch"}
-torchvision = { version = "^0.19.0", source="torch"}
-
-[[tool.poetry.source]]
-name = "torch"
-priority = "explicit"
-url = "https://download.pytorch.org/whl/cu118"
-secondary = true
 
 
 [build-system]
