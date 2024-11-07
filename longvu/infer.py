@@ -60,7 +60,9 @@ class ModelManager:
         return cls._instance
 
     @classmethod
-    def _load_model(cls, model_type: ModelType, media_type: MediaType) -> None:
+    def _load_model(
+        cls, model_type: ModelType, media_type: MediaType, quant: str = "8bit"
+    ) -> None:
         instance = cls.get_instance()
         # 只有在模型类型或媒体类型改变时才重新加载
         if (
@@ -76,11 +78,20 @@ class ModelManager:
                 case ModelType.QWEN:
                     model_name = "cambrian_qwen"
                     model_path = check_model(f"qwen{model_suffix}")
-
-            quantization_config = BitsAndBytesConfig(
-                load_in_8bit=True, llm_int8_enable_fp32_cpu_offload=True
-            )
-
+            match quant:
+                case "4bit":
+                    quantization_config = BitsAndBytesConfig(
+                        load_in_4bit=True,
+                        bnb_4bit_compute_dtype=torch.float16,
+                        bnb_4bit_quant_type="nf4",
+                        bnb_4bit_use_double_quant=True,
+                    )
+                case "8bit":
+                    quantization_config = BitsAndBytesConfig(
+                        load_in_8bit=True, llm_int8_enable_fp32_cpu_offload=True
+                    )
+                case _:
+                    quantization_config = None
             (
                 instance.tokenizer,
                 instance.model,
@@ -124,10 +135,11 @@ def infer(
     media: str,
     prompt: str = "Describe this media in detail.",
     model_type: str = "llama",
+    quant: str = "8bit",
 ):
     """
     Model type: llama, qwen
-    - qwen will be better, but will take 40GB gpu memory
+    Quant mode: 4bit, 8bit
     """
     try:
         model_type = ModelType(model_type)
@@ -159,7 +171,7 @@ def infer(
         raise ValueError(f"Unsupported media type: {mime}")
 
     # 加载模型
-    ModelManager._load_model(model_type, media_type)
+    ModelManager._load_model(model_type, media_type, quant)
     instance = ModelManager.get_instance()
 
     # 获取对话模板
