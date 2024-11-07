@@ -165,7 +165,17 @@ def infer(
     else:  # VIDEO
         vr = VideoReader(media, ctx=cpu(0), num_threads=1)
         fps = float(vr.get_avg_fps())
-        frame_indices = np.array([i for i in range(0, len(vr), round(fps))])
+        
+        # 检查显存大小
+        vram = torch.cuda.get_device_properties(0).total_memory / 1024**3  # 转换为GB
+        
+        # 仅对<24GB显存的设备限制帧数
+        if vram < 24:
+            num_frames = 1000 if len(vr) > 1000 else len(vr)
+        else:
+            num_frames = len(vr)
+        
+        frame_indices = np.array([i for i in range(0, num_frames, round(fps))])
         media_array = [vr[i].asnumpy() for i in frame_indices]
 
     image_sizes = [media_array[0].shape[:2]]
@@ -192,10 +202,12 @@ def infer(
         keywords, instance.tokenizer, input_ids
     )
 
+    attention_mask = torch.ones_like(input_ids)
     with torch.inference_mode():
         output_ids = instance.model.generate(
             input_ids,
             images=media_array,
+            attention_mask=attention_mask,
             image_sizes=image_sizes,
             do_sample=False,
             temperature=0.2,

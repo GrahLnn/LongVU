@@ -4,14 +4,11 @@ from typing import Dict, List, Optional
 
 import torch
 import torch.nn as nn
-
-from callm.projects.llava.mm_datautils import get_mm_adapter_state_maybe_zero_3
-
 from torch.utils.data import DataLoader, Sampler
-
 from transformers import Trainer
-
 from transformers.trainer import ALL_LAYERNORM_LAYERS, get_parameter_names, has_length
+
+from .mm_datautils import get_mm_adapter_state_maybe_zero_3
 
 
 # pyre-fixme[3]: Return type must be annotated.
@@ -457,7 +454,6 @@ class LLaVATrainer(Trainer):
     def _save_checkpoint(self, model, trial, metrics=None) -> None:
         # pyre-fixme[16]: `LLaVATrainer` has no attribute `args`.
         if getattr(self.args, "tune_mm_mlp_adapter", False):
-
             from transformers.trainer_utils import PREFIX_CHECKPOINT_DIR
 
             # pyre-fixme[16]: `LLaVATrainer` has no attribute `state`.
