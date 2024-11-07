@@ -10,6 +10,7 @@ import numpy as np
 import torch
 from decord import VideoReader, cpu
 from PIL import Image, ImageSequence
+from transformers import BitsAndBytesConfig
 
 from .builder import load_pretrained_model
 from .constants import (
@@ -76,12 +77,18 @@ class ModelManager:
                     model_name = "cambrian_qwen"
                     model_path = check_model(f"qwen{model_suffix}")
 
+            quantization_config = BitsAndBytesConfig(
+                load_in_8bit=True, llm_int8_enable_fp32_cpu_offload=True
+            )
+
             (
                 instance.tokenizer,
                 instance.model,
                 instance.image_processor,
                 instance.context_len,
-            ) = load_pretrained_model(model_path, None, model_name)
+            ) = load_pretrained_model(
+                model_path, None, model_name, quantization_config=quantization_config
+            )
 
             instance.model.eval()
             instance.current_model_type = model_type
@@ -136,7 +143,7 @@ def infer(
 
     mime = kind.mime
     media_type = None
-    match mime.split('/')[0]:
+    match mime.split("/")[0]:
         case "video":
             media_type = MediaType.VIDEO
         case "image":
@@ -165,21 +172,23 @@ def infer(
     else:  # VIDEO
         vr = VideoReader(media, ctx=cpu(0), num_threads=1)
         fps = float(vr.get_avg_fps())
-        
+
         # 检查显存大小
         vram = torch.cuda.get_device_properties(0).total_memory / 1024**3  # 转换为GB
-        
+
         # 仅对<24GB显存的设备限制帧数
         if vram < 24:
             num_frames = 1000 if len(vr) > 1000 else len(vr)
         else:
             num_frames = len(vr)
-        
+
         frame_indices = np.array([i for i in range(0, num_frames, round(fps))])
         media_array = [vr[i].asnumpy() for i in frame_indices]
 
     image_sizes = [media_array[0].shape[:2]]
-    media_array = process_images(media_array, instance.image_processor, instance.model.config)
+    media_array = process_images(
+        media_array, instance.image_processor, instance.model.config
+    )
     media_array = [item.unsqueeze(0) for item in media_array]
 
     prompt = DEFAULT_IMAGE_TOKEN + "\n" + prompt
@@ -209,7 +218,7 @@ def infer(
             images=media_array,
             attention_mask=attention_mask,
             image_sizes=image_sizes,
-            do_sample=False,
+            do_sample=True,
             temperature=0.2,
             max_new_tokens=4096,
             use_cache=True,

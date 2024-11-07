@@ -63,7 +63,6 @@ def check_model(model_type: str) -> str:
     snapshot_download(
         repo_id=config["repo_id"],
         local_dir=config["folder"],
-        local_dir_use_symlinks=False,
     )
 
     return str(config["folder"])
