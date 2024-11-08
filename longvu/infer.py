@@ -61,7 +61,7 @@ class ModelManager:
 
     @classmethod
     def _load_model(
-        cls, model_type: ModelType, media_type: MediaType, quant: str = "8bit"
+        cls, model_type: ModelType, media_type: MediaType, quant: str = "4bit"
     ) -> None:
         instance = cls.get_instance()
         # 只有在模型类型或媒体类型改变时才重新加载
